@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"time"
 )
 
 // Config хранит конфигурацию для приложения.
@@ -12,6 +13,7 @@ type Config struct {
 	DatabaseURI          string // Адрес подключения к базе данных
 	AccrualSystemAddress string // Адрес системы расчёта начислений
 	JWTSecretKey         string // Секретный ключ для JWT
+	PollingInterval      time.Duration
 }
 
 // New инициализирует новый объект Config, считывая флаги и переменные окружения.
@@ -23,6 +25,7 @@ func New() *Config {
 	flag.StringVar(&cfg.DatabaseURI, "d", "", "Адрес подключения к БД (env: DATABASE_URI)")
 	flag.StringVar(&cfg.AccrualSystemAddress, "r", "", "Адрес системы расчёта начислений (env: ACCRUAL_SYSTEM_ADDRESS)")
 	flag.StringVar(&cfg.JWTSecretKey, "k", "supersecretkey", "Секретный ключ для JWT (env: JWT_SECRET_KEY)")
+	flag.DurationVar(&cfg.PollingInterval, "i", 5*time.Second, "Интервал опроса системы начислений (env: POLLING_INTERVAL)")
 
 	flag.Parse()
 
@@ -38,6 +41,11 @@ func New() *Config {
 	}
 	if envJWTSecretKey := os.Getenv("JWT_SECRET_KEY"); envJWTSecretKey != "" {
 		cfg.JWTSecretKey = envJWTSecretKey
+	}
+	if envPollingInterval := os.Getenv("POLLING_INTERVAL"); envPollingInterval != "" {
+		if d, err := time.ParseDuration(envPollingInterval); err == nil {
+			cfg.PollingInterval = d
+		}
 	}
 
 	return cfg

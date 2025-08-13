@@ -1,0 +1,44 @@
+@host = localhost:8080
+
+### register user
+POST  http://{{host}}/api/user/register
+
+{"login":"kan","password":"qwe123"}
+
+### login user
+POST  http://{{host}}/api/user/login
+
+{"login":"kan","password":"qwe123"}
+
+### login user bad password
+POST  http://{{host}}/api/user/login
+
+{"login":"kan","password":"qwe1235"}
+
+
+### new order
+POST  http://{{host}}/api/user/orders
+Content-Type: text/plain
+
+12345678903
+
+### get orders
+GET http://{{host}}/api/user/orders
+
+
+### get user balance
+GET http://{{host}}/api/user/balance
+
+
+### withdraw money
+POST http://{{host}}/api/user/balance/withdraw HTTP/1.1
+Content-Type: application/json
+
+{
+	"order": "2377225624",
+    "sum": 751
+}
+
+### withdraw list
+GET http://{{host}}/api/user/withdrawals HTTP/1.1
+Content-Length: 0

@@ -3,6 +3,7 @@ package api
 import (
 	"billBox/internal/auth"
 	"billBox/internal/models"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -80,6 +81,47 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // LoginUser обрабатывает запрос на аутентификацию пользователя.
 // POST /api/user/login
 func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
-	h.logger.Println("LoginUser handler called")
+	// 1. Распарсить JSON из тела запроса.
+	var req models.AuthRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	// 2. Проверить, что логин и пароль не пустые.
+	if req.Login == "" || req.Password == "" {
+		http.Error(w, "Login and password are required", http.StatusBadRequest)
+		return
+	}
+
+	// 3. Найти пользователя в БД по логину.
+	user, err := h.storage.FindByLogin(r.Context(), req.Login)
+	if err != nil {
+		// Если пользователь не найден, возвращаем 401.
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Invalid login or password", http.StatusUnauthorized)
+			return
+		}
+		// В случае другой ошибки БД - 500.
+		h.logger.Printf("Error finding user by login %s: %v", req.Login, err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 4. Сравнить хеш пароля из БД с паролем из запроса.
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		http.Error(w, "Invalid login or password", http.StatusUnauthorized)
+		return
+	}
+
+	// 5. Сгенерировать JWT и установить cookie.
+	tokenString, err := auth.BuildJWTString(user.ID, h.jwtSecretKey)
+	if err != nil {
+		h.logger.Printf("Error building JWT for user %d: %v", user.ID, err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{Name: "token", Value: tokenString, Expires: time.Now().Add(12 * time.Hour), HttpOnly: true})
 	w.WriteHeader(http.StatusOK)
 }

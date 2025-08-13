@@ -11,7 +11,8 @@ import (
 
 	"billBox/internal/api"
 	"billBox/internal/config"
-	"billBox/internal/storage"
+	"billBox/internal/storage/postgres"
+	"billBox/internal/worker"
 )
 
 func main() {
@@ -22,15 +23,15 @@ func main() {
 	logger := log.New(os.Stdout, "gophermart ", log.LstdFlags)
 
 	// 3. Инициализация хранилища (подключение к PostgreSQL)
-	db, err := storage.New(cfg.DatabaseURI)
+	db, err := postgres.New(cfg.DatabaseURI)
 	if err != nil {
 		logger.Fatalf("failed to initialize storage: %v", err)
 	}
 	defer db.Close()
 
-	// // 4. Инициализация воркера для опроса системы начислений
-	// accrualPoller := worker.New(db, cfg.AccrualSystemAddress, logger)
-	// go accrualPoller.Start(context.Background())
+	// 4. Инициализация воркера для опроса системы начислений
+	accrualPoller := worker.New(db, cfg.AccrualSystemAddress, logger, cfg.PollingInterval)
+	go accrualPoller.Start(context.Background())
 
 	// 5. Инициализация HTTP-сервера и роутера
 	router := api.NewRouter(db, logger, cfg)

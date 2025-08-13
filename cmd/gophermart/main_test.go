@@ -46,7 +46,9 @@ func TestGophermartFlowWithMockStorage(t *testing.T) {
 	require.Equal(t, http.StatusOK, regRR.Code, "Регистрация должна пройти успешно")
 
 	// Получаем cookie для следующих запросов
-	authCookie := regRR.Result().Cookies()[0]
+	res := regRR.Result()
+	defer res.Body.Close()
+	authCookie := res.Cookies()[0]
 	require.NotNil(t, authCookie)
 
 	// --- Шаг 2: Загрузка номера заказа ---

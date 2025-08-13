@@ -74,6 +74,22 @@ func (m *Storage) Get(ctx context.Context, userID int64) (*models.Balance, error
 	return r0, args.Error(1)
 }
 
+// FindProcessableOrders mocks the FindProcessableOrders method
+func (m *Storage) FindProcessableOrders(ctx context.Context) ([]models.Order, error) {
+	args := m.Called(ctx)
+	var r0 []models.Order
+	if args.Get(0) != nil {
+		r0 = args.Get(0).([]models.Order)
+	}
+	return r0, args.Error(1)
+}
+
+// UpdateOrderAccrual mocks the UpdateOrderAccrual method
+func (m *Storage) UpdateOrderAccrual(ctx context.Context, number string, status models.OrderStatus, accrual float64) error {
+	args := m.Called(ctx, number, status, accrual)
+	return args.Error(0)
+}
+
 // Withdraw mocks the Withdraw method
 func (m *Storage) Withdraw(ctx context.Context, userID int64, orderNumber string, sum float64) error {
 	args := m.Called(ctx, userID, orderNumber, sum)
