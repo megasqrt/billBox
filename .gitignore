@@ -11,13 +11,14 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Binaries
-cmd/gophermart/main
-cmd/gophermart/gophermart
+# IDE-specific files
+.idea/
+.vscode/
+*.swp
+*~
 
-# Dependency directories (remove the comment below to include it)
-vendor/
+# Compiled binary
+billBox
 
-# IDEs directories
-.idea
-.vscode
+vendor
+gophermart
