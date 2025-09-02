@@ -10,6 +10,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"billBox/internal/storage"
 )
 
 //go:embed migrations/*.sql
@@ -22,6 +23,9 @@ type DB struct {
 
 // New creates a new PostgreSQL storage client, connects to the DB and runs migrations.
 func New(databaseURI string) (*DB, error) {
+	// Проверка на этапе компиляции, что *DB реализует интерфейс storage.Storage
+	var _ storage.Storage = (*DB)(nil)
+	
 	if databaseURI == "" {
 		return nil, fmt.Errorf("database URI is required")
 	}
@@ -72,4 +76,9 @@ func (db *DB) Close() {
 	if db.conn != nil {
 		db.conn.Close()
 	}
+}
+
+// Conn возвращает нативное подключение к БД для использования в тестах.
+func (db *DB) Conn() *sql.DB {
+	return db.conn
 }

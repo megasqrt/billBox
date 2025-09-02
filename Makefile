@@ -4,6 +4,8 @@ DATABASE_URI=postgres://billbox:billbox@localhost:5432/billbox?sslmode=disable
 ACCRUALSYSTEMADDRESS=http://localhost:8090/api/accrue
 JWTSECRETKEY=jwtsecretkey 
 
+.PHONY: echo run tests tidy build
+
 echo:
 	go version
 
@@ -12,7 +14,6 @@ run:
 
 tests:
 	go vet -vettool=$(which statictest) ./...
-	go test ./...	
 	go test -v -race ./...
 
 tidy:
